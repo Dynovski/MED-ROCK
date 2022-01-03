@@ -54,6 +54,14 @@ class Rock:
 
         self.all_clusters: SortedList[Cluster] = SortedList(copy.copy(self.clusters_by_idx))
 
+    @property
+    def best_cluster(self) -> Cluster:
+        return self.all_clusters[0]
+
+    @property
+    def result(self) -> SortedList:
+        return self.all_clusters
+
     def compute_similarity_matrix(self, point: np.ndarray) -> np.ndarray:
         return euclidean_distance(point, self.data)
 
@@ -86,10 +94,6 @@ class Rock:
                 c2.size ** self.goodness_exponent
         )
         return num_links / normalize_factor
-
-    @property
-    def best_cluster(self) -> Cluster:
-        return self.all_clusters[0]
 
     def get_best_cluster(self) -> Cluster:
         return self.all_clusters.pop(0)
