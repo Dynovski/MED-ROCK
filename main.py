@@ -9,7 +9,6 @@ import config as cfg
 
 from plotting import plot_2d_dataframe_by_class, plot_2d_dataframe_by_dataset
 from rock import Rock
-from cluster import Cluster
 
 
 def test():
@@ -18,22 +17,22 @@ def test():
     data_df: pd.DataFrame = pd.DataFrame(data[0])
     data_array: np.ndarray = data_df[cfg.DATA_ATTRIBUTES].values
 
-    plot_2d_dataframe_by_class(data_df, 'test')
+    plot_2d_dataframe_by_class(data_df, 'test3')
 
-    rock: Rock = Rock(data_array, 1.0, 3, 0.6, 0.6)
+    rock: Rock = Rock(data_array, 1.0, 3, 0.6, 0.3)
 
     rock.run()
 
-    clusters: SortedList[Cluster] = rock.result
+    clusters: List[List[int]] = rock.result
 
     cluster_data: List[pd.DataFrame] = []
     for cluster in clusters:
-        data_indices = data_df.index.isin(cluster.data_indices)
+        data_indices = data_df.index.isin(cluster)
         cluster_data.append(data_df[data_indices])
 
     concatenated_df: pd.DataFrame = pd.concat([c.assign(dataset=f'c{i}') for (i, c) in enumerate(cluster_data)])
 
-    plot_2d_dataframe_by_dataset(concatenated_df, 'test')
+    plot_2d_dataframe_by_dataset(concatenated_df, 'test3')
 
 
 if __name__ == '__main__':

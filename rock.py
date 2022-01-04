@@ -29,8 +29,8 @@ class Rock:
         """
         self.data: np.ndarray = data
         num_elements_to_sample: int = int(len(data) * sample_size)
-        random_indices: np.ndarray = np.random.randint(self.data.shape[0], size=num_elements_to_sample)
-        self.sample: np.ndarray = self.data[random_indices, :]
+        self.random_indices: np.ndarray = np.random.randint(self.data.shape[0], size=num_elements_to_sample)
+        self.sample: np.ndarray = self.data[self.random_indices, :]
         print('Sampled data for detailed computation')
         self.num_clusters: int = num_clusters
         self.theta: float = theta
@@ -61,8 +61,14 @@ class Rock:
         return self.all_clusters[0]
 
     @property
-    def result(self) -> SortedList:
-        return self.all_clusters
+    def result(self) -> List[List[int]]:
+        result: List[List[int]] = []
+        for cluster in self.all_clusters:
+            real_indices = []
+            for index in cluster.data_indices:
+                real_indices.append(self.random_indices[index])
+            result.append(sorted(real_indices))
+        return result
 
     def compute_similarity_matrix(self, point: np.ndarray) -> np.ndarray:
         return euclidean_distance(point, self.sample)

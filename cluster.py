@@ -32,11 +32,16 @@ class Cluster:
 
     def __lt__(self, other: 'Cluster'):
         # zdarzają się elementy, które mają identyczne goodness, trzeba posłużyć się czymnś więcej przy sortowaniu
-        this_goodness = self.get_goodness(self.best_linked_cluster)
-        other_goodness = other.get_goodness(other.best_linked_cluster)
-        if this_goodness == other_goodness:
-            return tuple(self.data_indices) < tuple(other.data_indices)
-        return self.get_goodness(self.best_linked_cluster) < other.get_goodness(other.best_linked_cluster)
+        if len(self.linked_clusters) > 0 and len(other.linked_clusters) > 0:
+            this_goodness = self.get_goodness(self.best_linked_cluster)
+            other_goodness = other.get_goodness(other.best_linked_cluster)
+            if this_goodness == other_goodness:
+                return tuple(self.data_indices) < tuple(other.data_indices)
+            return self.get_goodness(self.best_linked_cluster) < other.get_goodness(other.best_linked_cluster)
+        elif len(self.linked_clusters) > 0:
+            return True
+        else:
+            return False
 
     def __eq__(self, other: 'Cluster'):
         return id(self) == id(other)
