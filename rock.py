@@ -137,9 +137,6 @@ class Rock:
                 x.remove_linked_cluster(u)
                 x.remove_linked_cluster(v)
 
-                self.links[x.data_indices[0], w.data_indices[0]] = self.links[x.data_indices[0], u.data_indices[0]] + self.links[
-                    x.data_indices[0], v.data_indices[0]]
-
                 goodness = self.goodness_measure(w, x)
 
                 x.add_linked_cluster(w, goodness)
