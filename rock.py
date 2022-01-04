@@ -2,6 +2,7 @@ import numpy as np
 
 from sortedcontainers import SortedList
 from typing import List, Set
+from tqdm import tqdm
 
 from cluster import Cluster
 from utils import euclidean_distance
@@ -111,6 +112,7 @@ class Rock:
         return self.all_clusters.pop(0)
 
     def run(self):
+        bar = tqdm(desc='Processing clusters', total=len(self.all_clusters) - self.num_clusters)
         while len(self.all_clusters) > self.num_clusters:
             if len(self.best_cluster.linked_clusters) == 0:
                 # No more possible clusters to merge
@@ -145,4 +147,4 @@ class Rock:
                 self.all_clusters.add(x)
 
             self.all_clusters.add(w)
-            print(f'Clusters left: {len(self.all_clusters)}')
+            bar.update()
