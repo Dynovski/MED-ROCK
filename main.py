@@ -3,7 +3,6 @@ import numpy as np
 
 from scipy.io import arff
 from typing import List
-from sortedcontainers import SortedList
 
 import config as cfg
 
@@ -20,7 +19,7 @@ def test():
 
     plot_2d_dataframe_by_class(data_df, 'test4')
 
-    rock: Rock = Rock(data_array, 1.0, 3, 0.6, 0.3)
+    rock: Rock = Rock(data_array, 1.0, 3, 0.0, 0.6)
 
     rock.run()
 
