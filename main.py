@@ -14,12 +14,13 @@ from cluster import Cluster
 
 def test():
     data = arff.loadarff(f'{cfg.DATA_PATH}/2d-3c-no123.arff')
+    print('Loaded data')
     data_df: pd.DataFrame = pd.DataFrame(data[0])
-    data_array: np.ndarray = data_df[cfg.DATA_ATTRIBUTES].values.tolist()
+    data_array: np.ndarray = data_df[cfg.DATA_ATTRIBUTES].values
 
     plot_2d_dataframe_by_class(data_df, 'test')
 
-    rock: Rock = Rock(data_array, data_array.shape[0], 3, 0.6, 0.6)
+    rock: Rock = Rock(data_array, 1.0, 3, 0.6, 0.6)
 
     rock.run()
 

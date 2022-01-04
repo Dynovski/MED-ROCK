@@ -1,4 +1,3 @@
-import copy
 import numpy as np
 
 from sortedcontainers import SortedList
@@ -32,27 +31,30 @@ class Rock:
         num_elements_to_sample: int = int(len(data) * sample_size)
         random_indices: np.ndarray = np.random.randint(self.data.shape[0], size=num_elements_to_sample)
         self.sample: np.ndarray = self.data[random_indices, :]
+        print('Sampled data for detailed computation')
         self.num_clusters: int = num_clusters
         self.theta: float = theta
         self.max_distance: float = max_distance
         self.links: np.ndarray = self.compute_links()
+        print('Computed links')
         self.goodness_exponent: float = 1 + 2 * (1.0 - self.theta) / (1.0 + self.theta)
-        self.all_clusters: SortedList[Cluster] = SortedList()
 
-        self.clusters_by_idx: List[Cluster] = []
-
-        for i in range(num_elements_to_sample):
-            self.clusters_by_idx.append(Cluster([i]))
+        clusters_by_idx: List[Cluster] = []
 
         for i in range(num_elements_to_sample):
-            cluster: Cluster = self.clusters_by_idx[i]
+            clusters_by_idx.append(Cluster([i]))
+
+        for i in range(num_elements_to_sample):
+            cluster: Cluster = clusters_by_idx[i]
             similar_clusters: np.ndarray = np.nonzero(self.links[i, :])[0]
             for cluster_idx in similar_clusters:
-                similar_cluster: Cluster = self.clusters_by_idx[cluster_idx]
-                goodness: float = self.goodness_measure(cluster, similar_cluster)
+                similar_cluster: Cluster = clusters_by_idx[cluster_idx]
+                goodness: float = self.initial_goodness_measure(cluster, similar_cluster)
                 cluster.add_linked_cluster(similar_cluster, goodness)
 
-        self.all_clusters: SortedList[Cluster] = SortedList(copy.copy(self.clusters_by_idx))
+        print('Calculated initial goodness measure and linked clusters')
+
+        self.all_clusters: SortedList[Cluster] = SortedList(clusters_by_idx)
 
     @property
     def best_cluster(self) -> Cluster:
@@ -63,19 +65,21 @@ class Rock:
         return self.all_clusters
 
     def compute_similarity_matrix(self, point: np.ndarray) -> np.ndarray:
-        return euclidean_distance(point, self.data)
+        return euclidean_distance(point, self.sample)
 
     def find_neighbours(self) -> List[np.ndarray]:
         neighbours: List[np.ndarray] = []
-        num_points: int = self.data.shape[0]
+        num_points: int = self.sample.shape[0]
         for i in range(num_points):
-            point: np.ndarray = self.data[i]
+            point: np.ndarray = self.sample[i]
             sim_matrix: np.ndarray = self.compute_similarity_matrix(point)
-            neighbours.append(np.where(sim_matrix <= self.max_distance))
+            print('Computed similarity matrix')
+            neighbours.append(np.where(sim_matrix <= self.max_distance)[0])
         return neighbours
 
     def compute_links(self) -> np.ndarray:
         neighbors: List[np.ndarray] = self.find_neighbours()
+        print('Computed neighbours list')
         num_data = self.sample.shape[0]
         links_matrix: np.ndarray = np.zeros((num_data, num_data), dtype=int)
         for i in range(num_data):
@@ -84,7 +88,7 @@ class Rock:
                 for k in range(j + 1, i_neighbors.shape[0]):
                     links_matrix[i_neighbors[j], i_neighbors[k]] += 1
                     links_matrix[i_neighbors[k], i_neighbors[j]] += 1
-            return links_matrix
+        return links_matrix
 
     def goodness_measure(self, c1: Cluster, c2: Cluster) -> float:
         num_links: int = c1.num_links + c2.num_links
@@ -93,7 +97,19 @@ class Rock:
                 c1.size ** self.goodness_exponent -
                 c2.size ** self.goodness_exponent
         )
-        return num_links / normalize_factor
+        return -num_links / normalize_factor
+
+    def initial_goodness_measure(self, c1: Cluster, c2: Cluster) -> float:
+        num_links: int = 0
+        for i in c1.data_indices:
+            for j in c2.data_indices:
+                num_links += self.links[i, j]
+        normalize_factor = (
+                (c1.size + c2.size) ** self.goodness_exponent -
+                c1.size ** self.goodness_exponent -
+                c2.size ** self.goodness_exponent
+        )
+        return -num_links / normalize_factor
 
     def get_best_cluster(self) -> Cluster:
         return self.all_clusters.pop(0)
@@ -116,19 +132,16 @@ class Rock:
                 similar_clusters.add(i)
             for i in v.linked_clusters:
                 similar_clusters.add(i)
-            similar_clusters.remove(u)
-            similar_clusters.remove(v)
+            similar_clusters.discard(u)
+            similar_clusters.discard(v)
 
             for x in similar_clusters:
-                self.all_clusters.remove(x)
+                self.all_clusters.discard(x)
 
-                try:
-                    x.linked_clusters.discard(u)
-                    del x.cluster_to_goodness_d[u]
-                    x.linked_clusters.discard(v)
-                    del x.cluster_to_goodness_d[v]
-                except KeyError:
-                    pass
+                x.linked_clusters.discard(u)
+                x.cluster_to_goodness_d.pop(u)
+                x.linked_clusters.discard(v)
+                x.cluster_to_goodness_d.pop(v)
 
                 goodness = self.goodness_measure(w, x)
 
