@@ -31,8 +31,7 @@ def test():
         data_indices = data_df.index.isin(cluster.data_indices)
         cluster_data.append(data_df[data_indices])
 
-    concatenated_df: pd.DataFrame = pd.concat([c.append(dataset=f'c{i}') for (i, c) in enumerate(cluster_data)])
-    print(concatenated_df.head())
+    concatenated_df: pd.DataFrame = pd.concat([c.assign(dataset=f'c{i}') for (i, c) in enumerate(cluster_data)])
 
     plot_2d_dataframe_by_dataset(concatenated_df, 'test')
 

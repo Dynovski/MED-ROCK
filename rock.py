@@ -49,7 +49,7 @@ class Rock:
             similar_clusters: np.ndarray = np.nonzero(self.links[i, :])[0]
             for cluster_idx in similar_clusters:
                 similar_cluster: Cluster = clusters_by_idx[cluster_idx]
-                goodness: float = self.initial_goodness_measure(cluster, similar_cluster)
+                goodness: float = self.goodness_measure(cluster, similar_cluster)
                 cluster.add_linked_cluster(similar_cluster, goodness)
 
         print('Calculated initial goodness measure and linked clusters')
@@ -73,7 +73,6 @@ class Rock:
         for i in range(num_points):
             point: np.ndarray = self.sample[i]
             sim_matrix: np.ndarray = self.compute_similarity_matrix(point)
-            print('Computed similarity matrix')
             neighbours.append(np.where(sim_matrix <= self.max_distance)[0])
         return neighbours
 
@@ -91,15 +90,6 @@ class Rock:
         return links_matrix
 
     def goodness_measure(self, c1: Cluster, c2: Cluster) -> float:
-        num_links: int = c1.num_links + c2.num_links
-        normalize_factor = (
-                (c1.size + c2.size) ** self.goodness_exponent -
-                c1.size ** self.goodness_exponent -
-                c2.size ** self.goodness_exponent
-        )
-        return -num_links / normalize_factor
-
-    def initial_goodness_measure(self, c1: Cluster, c2: Cluster) -> float:
         num_links: int = 0
         for i in c1.data_indices:
             for j in c2.data_indices:
@@ -138,10 +128,11 @@ class Rock:
             for x in similar_clusters:
                 self.all_clusters.discard(x)
 
-                x.linked_clusters.discard(u)
-                x.cluster_to_goodness_d.pop(u)
-                x.linked_clusters.discard(v)
-                x.cluster_to_goodness_d.pop(v)
+                x.remove_linked_cluster(u)
+                x.remove_linked_cluster(v)
+
+                self.links[x.data_indices[0], w.data_indices[0]] = self.links[x.data_indices[0], u.data_indices[0]] + self.links[
+                    x.data_indices[0], v.data_indices[0]]
 
                 goodness = self.goodness_measure(w, x)
 
