@@ -71,30 +71,21 @@ class Rock:
             result.append(sorted(real_indices))
         return result
 
-    def compute_similarity_matrix(self, point: np.ndarray) -> np.ndarray:
+    def compute_similarity(self, point: np.ndarray) -> np.ndarray:
         return euclidean_distance(point, self.sample)
 
-    def find_neighbours(self) -> List[np.ndarray]:
-        neighbours: List[np.ndarray] = []
+    def compute_adjacency_matrix(self):
+        adjacency_rows: List[np.ndarray] = []
         num_points: int = self.sample.shape[0]
         for i in range(num_points):
             point: np.ndarray = self.sample[i]
-            sim_matrix: np.ndarray = self.compute_similarity_matrix(point)
-            neighbours.append(np.where(sim_matrix <= self.max_distance)[0])
-        return neighbours
+            sim_matrix: np.ndarray = self.compute_similarity(point)
+            adjacency_rows.append(sim_matrix <= self.max_distance)
+        return np.stack(adjacency_rows).astype(int)
 
-    def compute_links(self) -> np.ndarray:
-        neighbors: List[np.ndarray] = self.find_neighbours()
-        print('Computed neighbours list')
-        num_data = self.sample.shape[0]
-        links_matrix: np.ndarray = np.zeros((num_data, num_data), dtype=int)
-        for i in range(num_data):
-            i_neighbors = neighbors[i]
-            for j in range(i_neighbors.shape[0] - 1):
-                for k in range(j + 1, i_neighbors.shape[0]):
-                    links_matrix[i_neighbors[j], i_neighbors[k]] += 1
-                    links_matrix[i_neighbors[k], i_neighbors[j]] += 1
-        return links_matrix
+    def compute_links(self):
+        matrix = self.compute_adjacency_matrix()
+        return matrix.dot(matrix)
 
     def goodness_measure(self, c1: Cluster, c2: Cluster) -> float:
         num_links: int = 0
