@@ -29,7 +29,11 @@ class Rock:
         """
         self.data: np.ndarray = data
         num_elements_to_sample: int = int(len(data) * sample_size)
-        self.random_indices: np.ndarray = np.random.randint(self.data.shape[0], size=num_elements_to_sample)
+        self.random_indices: np.ndarray = np.random.default_rng().choice(
+            self.data.shape[0],
+            size=num_elements_to_sample,
+            replace=False
+        )
         self.sample: np.ndarray = self.data[self.random_indices, :]
         print('Sampled data for detailed computation')
         self.num_clusters: int = num_clusters
@@ -77,7 +81,9 @@ class Rock:
 
     def compute_links(self):
         matrix = self.compute_adjacency_matrix()
-        return matrix.dot(matrix)
+        result = matrix.dot(matrix)
+        np.fill_diagonal(result, 0)
+        return result
 
     def goodness_measure(self, c1: Cluster, c2: Cluster) -> float:
         num_links: int = 0
