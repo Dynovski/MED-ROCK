@@ -7,7 +7,7 @@ from typing import List
 import config as cfg
 
 from plotting import plot_2d_dataframe_by_class, plot_2d_dataframe_by_dataset
-from rock import Rock
+from rock import DistanceRock
 
 
 def test():
@@ -19,7 +19,7 @@ def test():
 
     plot_2d_dataframe_by_class(data_df, 'test4')
 
-    rock: Rock = Rock(data_array, 1.0, 3, 0.0, 0.6)
+    rock: DistanceRock = DistanceRock(data_array, 1.0, 3, 0.0, 0.6)
 
     rock.run()
 

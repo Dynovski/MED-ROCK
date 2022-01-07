@@ -15,7 +15,6 @@ class Rock:
             sample_size: float,
             num_clusters: int,
             theta: float,
-            max_distance: float
     ):
         """
 
@@ -35,7 +34,6 @@ class Rock:
         print('Sampled data for detailed computation')
         self.num_clusters: int = num_clusters
         self.theta: float = theta
-        self.max_distance: float = max_distance
         self.links: np.ndarray = self.compute_links()
         print('Computed links')
         self.goodness_exponent: float = 1 + 2 * (1.0 - self.theta) / (1.0 + self.theta)
@@ -72,16 +70,10 @@ class Rock:
         return result
 
     def compute_similarity(self, point: np.ndarray) -> np.ndarray:
-        return euclidean_distance(point, self.sample)
+        raise NotImplementedError()
 
-    def compute_adjacency_matrix(self):
-        adjacency_rows: List[np.ndarray] = []
-        num_points: int = self.sample.shape[0]
-        for i in range(num_points):
-            point: np.ndarray = self.sample[i]
-            sim_matrix: np.ndarray = self.compute_similarity(point)
-            adjacency_rows.append(sim_matrix <= self.max_distance)
-        return np.stack(adjacency_rows).astype(int)
+    def compute_adjacency_matrix(self) -> np.ndarray:
+        raise NotImplementedError()
 
     def compute_links(self):
         matrix = self.compute_adjacency_matrix()
@@ -139,3 +131,28 @@ class Rock:
 
             self.all_clusters.add(w)
             bar.update()
+
+
+class DistanceRock(Rock):
+    def __init__(
+            self,
+            data: np.ndarray,
+            sample_size: float,
+            num_clusters: int,
+            theta: float,
+            max_distance: float):
+        self.max_distance: float = max_distance
+        super(DistanceRock, self).__init__(data, sample_size, num_clusters, theta)
+
+    def compute_similarity(self, point: np.ndarray) -> np.ndarray:
+        return euclidean_distance(point, self.sample)
+
+    def compute_adjacency_matrix(self) -> np.ndarray:
+        adjacency_rows: List[np.ndarray] = []
+        num_points: int = self.sample.shape[0]
+        for i in range(num_points):
+            point: np.ndarray = self.sample[i]
+            sim_matrix: np.ndarray = self.compute_similarity(point)
+            adjacency_rows.append(sim_matrix <= self.max_distance)
+        return np.stack(adjacency_rows).astype(int)
+
