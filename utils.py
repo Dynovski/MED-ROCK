@@ -9,18 +9,20 @@ def encode_categorical(data: ndarray) -> ndarray:
     return encoder.fit_transform(data)
 
 
-def euclidean_distance(point: ndarray, all_points: ndarray) -> ndarray:
+def euclidean_distance(point: ndarray, all_points: ndarray, point_in_all_points: bool = True) -> ndarray:
     differences: ndarray = all_points - point
-    point_idx: int = all_points.tolist().index(point.tolist())
     squared_sum: ndarray = np.sum(np.square(differences), axis=1)
-    squared_sum[point_idx] = np.inf  # Skip self in computations
+    if point_in_all_points:
+        point_idx: int = all_points.tolist().index(point.tolist())
+        squared_sum[point_idx] = np.inf  # Skip self in computations
     return np.sqrt(squared_sum)
 
 
-def jaccard_coefficient(point: ndarray, all_points: ndarray) -> ndarray:
+def jaccard_coefficient(point: ndarray, all_points: ndarray, point_in_all_points: bool = True) -> ndarray:
     intersection: ndarray = np.logical_and(all_points, point)
-    point_idx: int = all_points.tolist().index(point.tolist())
-    intersection[point_idx, :] = False  # Skip self in computations
+    if point_in_all_points:
+        point_idx: int = all_points.tolist().index(point.tolist())
+        intersection[point_idx, :] = False  # Skip self in computations
     union: ndarray = np.logical_or(all_points, point)
     intersection: ndarray = np.sum(intersection, axis=1)
     union: ndarray = np.sum(union, axis=1)
