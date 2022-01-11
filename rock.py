@@ -198,10 +198,12 @@ class CategoricalRock(Rock):
     def compute_adjacency_matrix(self) -> np.ndarray:
         adjacency_rows: List[np.ndarray] = []
         num_points: int = self.sample.shape[0]
+        bar = tqdm(desc='Computing similarity matrix', total=num_points)
         for i in range(num_points):
             point: np.ndarray = self.sample[i]
             sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
             adjacency_rows.append(sim_matrix >= self.theta)
+            bar.update()
         return np.stack(adjacency_rows).astype(int)
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
