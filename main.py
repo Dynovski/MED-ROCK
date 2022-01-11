@@ -10,7 +10,7 @@ from rock import DistanceRock, CategoricalRock
 from data_loader import DataLoader
 
 
-def test():
+def test_nominal():
     np.random.seed(42)
 
     loader: DataLoader = DataLoader(f'{cfg.DATA_PATH}/2d-3c-no123.arff')
@@ -29,27 +29,30 @@ def test():
     concatenated_df: pd.DataFrame = pd.concat([c.assign(dataset=f'c{i}') for (i, c) in enumerate(cluster_data)])
     plot_2d_dataframe_by_dataset(concatenated_df, 'test4')
 
-    cat_loader: DataLoader = DataLoader('agaricus-lepiota.data')
-    cat_data: np.ndarray = cat_loader.load_from_csv()
-    cat_data_labels: np.ndarray = np.asarray(cat_data[:, 0])
-    cat_data_array: np.ndarray = np.asarray(cat_data[:, 1:])
 
-    cat_rock: CategoricalRock = CategoricalRock(cat_data_array, 0.25, 20, 0.8)
-    cat_rock.run()
+def test_categorical():
+    loader: DataLoader = DataLoader('agaricus-lepiota.data')
+    data: np.ndarray = loader.load_from_csv()
+    labels_array: np.ndarray = np.asarray(data[:, 0])
+    data_array: np.ndarray = np.asarray(data[:, 1:])
 
-    cat_clusters: List[List[int]] = cat_rock.result
-    cat_data_df: pd.DataFrame = pd.DataFrame(columns=[cfg.DATA_TARGET, cfg.CATEGORICAL_DATA_ATTRIBUTE])
-    for i, cluster in enumerate(cat_clusters):
-        labels_in_cluster: np.ndarray = cat_data_labels[cluster]
+    rock: CategoricalRock = CategoricalRock(data_array, 0.25, 20, 0.8)
+    rock.run()
+
+    clusters: List[List[int]] = rock.result
+    data_df: pd.DataFrame = pd.DataFrame(columns=[cfg.DATA_TARGET, cfg.CATEGORICAL_DATA_ATTRIBUTE])
+    for i, cluster in enumerate(clusters):
+        labels_in_cluster: np.ndarray = labels_array[cluster]
         for k in range(labels_in_cluster.shape[0]):
-            cat_data_df = cat_data_df.append(
+            data_df = data_df.append(
                 {
                     cfg.DATA_TARGET: labels_in_cluster[k],
                     cfg.CATEGORICAL_DATA_ATTRIBUTE: i
                 }, ignore_index=True)
         print(f'Cluster {i}:\n {np.asarray(np.unique(labels_in_cluster, return_counts=True)).T}')
-    plot_categorical_data_clusters(cat_data_df, 'test')
+    plot_categorical_data_clusters(data_df, 'test')
 
 
 if __name__ == '__main__':
-    test()
+    test_nominal()
+    # test_categorical()

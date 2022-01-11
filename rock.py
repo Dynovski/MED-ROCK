@@ -184,7 +184,10 @@ class DistanceRock(Rock):
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
         similarity: np.ndarray = self.compute_similarity(point, points, False)
-        return np.sum(similarity <= self.max_distance).item() / (points.shape[0] + 1) ** (1.0 - self.theta) / (1.0 + self.theta)
+        return (
+                np.sum(similarity <= self.max_distance).item() /
+                (points.shape[0] + 1) ** ((1.0 - self.theta) / (1.0 + self.theta))
+        )
 
 
 class CategoricalRock(Rock):
@@ -208,4 +211,7 @@ class CategoricalRock(Rock):
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
         similarity: np.ndarray = self.compute_similarity(point, points, False)
-        return np.sum(similarity >= self.theta).item() / (points.shape[0] + 1) ** (1.0 - self.theta) / (1.0 + self.theta)
+        return (
+                np.sum(similarity >= self.theta).item() /
+                (points.shape[0] + 1) ** ((1.0 - self.theta) / (1.0 + self.theta))
+        )
