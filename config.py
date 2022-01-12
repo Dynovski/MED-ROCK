@@ -7,3 +7,4 @@ DATA_ATTRIBUTES = ['a0', 'a1']
 DATA_TARGET = 'class'
 
 CATEGORICAL_DATA_ATTRIBUTE = 'cluster'
+USE_PARALLEL = True

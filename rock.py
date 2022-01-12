@@ -1,9 +1,11 @@
 import numpy as np
 
 from sortedcontainers import SortedList
-from typing import List, Set
+from multiprocessing import Pool
+from typing import List, Set, Tuple
 from tqdm import tqdm
 
+import config
 from cluster import Cluster
 from utils import euclidean_distance, jaccard_coefficient, encode_categorical
 
@@ -201,13 +203,27 @@ class CategoricalRock(Rock):
     def compute_adjacency_matrix(self) -> np.ndarray:
         adjacency_rows: List[np.ndarray] = []
         num_points: int = self.sample.shape[0]
-        bar = tqdm(desc='Computing similarity matrix', total=num_points)
-        for i in range(num_points):
-            point: np.ndarray = self.sample[i]
-            sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
-            adjacency_rows.append(sim_matrix >= self.theta)
-            bar.update()
+        if config.USE_PARALLEL:
+            parallel_computation_data: List[Tuple[int, np.ndarray]] = []
+            unsorted_rows: List[Tuple[int, np.ndarray]] = []
+            for i in range(num_points):
+                point: np.ndarray = self.sample[i]
+                parallel_computation_data.append((i, point))
+            with Pool() as pool:
+                unsorted_rows = pool.starmap(self.parallel_computations, parallel_computation_data)
+            adjacency_rows: List[np.ndarray] = [tup[1] for tup in sorted(unsorted_rows)]
+        else:
+            bar = tqdm(desc='Computing similarity matrix', total=num_points)
+            for i in range(num_points):
+                point: np.ndarray = self.sample[i]
+                sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
+                adjacency_rows.append(sim_matrix >= self.theta)
+                bar.update()
         return np.stack(adjacency_rows).astype(int)
+
+    def parallel_computations(self, i, point):
+        sim_matrix = self.compute_similarity(point, self.sample)
+        return i, sim_matrix >= self.theta
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
         similarity: np.ndarray = self.compute_similarity(point, points, False)

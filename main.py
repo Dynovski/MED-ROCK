@@ -31,7 +31,7 @@ def test_nominal():
 
 
 def test_categorical():
-    loader: DataLoader = DataLoader('agaricus-lepiota.data')
+    loader: DataLoader = DataLoader('data/agaricus-lepiota.data')
     data: np.ndarray = loader.load_from_csv()
     labels_array: np.ndarray = np.asarray(data[:, 0])
     data_array: np.ndarray = np.asarray(data[:, 1:])
@@ -54,5 +54,5 @@ def test_categorical():
 
 
 if __name__ == '__main__':
-    test_nominal()
-    # test_categorical()
+    # test_nominal()
+    test_categorical()
