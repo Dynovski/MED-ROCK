@@ -1,25 +1,40 @@
-DATA_PATH = 'data'
+NOMINAL_DATA_PATH = 'data/nominal'
+CATEGORICAL_DATA_PATH = 'data/categorical'
 OUTPUT_PATH = 'results/outputs'
 TARGET_PATH = 'results/targets'
-CATEGORICAL_PATH = 'results/categorical'
+CATEGORICAL_PLOTS_PATH = 'results/categorical'
 
-DATA_ATTRIBUTES = ['a0', 'a1']
+# For plotting
+DATA_ATTRIBUTES = ['x', 'y']
 DATA_TARGET = 'class'
 
 CATEGORICAL_DATA_ATTRIBUTE = 'cluster'
-USE_PARALLEL = True
+USE_PARALLEL = False
 
-NOMINAL_TEST_FILENAMES = [
-    '2d-3c-no123.arff'
+N_TEST_FILENAMES = [
+    '2d-3c-no123.arff',
+    '2d-4c-no4.arff',
+    '3-spiral.arff',
+    'banana.arff',
+    'blobs.arff',
+    'circle.arff',
+    'curves1.arff',
+    'donut1.arff',
+    's-set1.arff',
+    'sizes1.arff',
+    'triangle1.arff'
 ]
 
-NOMINAL_NUM_CLUSTERS = [3]
+N_NUM_CLUSTERS = [3, 4, 3, 2, 3, 2, 2, 2, 16, 4, 4]
 
-CATEGORICAL_TEST_FILENAMES = [
-    'agaricus-lepiota.data'
+C_TEST_FILENAMES = [
+    'agaricus-lepiota.data',
+    'breast-cancer.data',
+    'adult.data'
 ]
 
-CATEGORICAL_NUM_CLUSTERS = [20]
+C_NUM_CLUSTERS = [20, 2, 2]
+LABEL_FIRST = [True, False, False]
 
 THRESHOLDS = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-DISTANCES = [0.2, 0.4, 0.6, 0.8, 1.0]
+DISTANCES = [0.4, 0.8, 1.6, 3.2, 6.4]

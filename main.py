@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from typing import List
+from typing import List, Optional
 from multiprocessing import Pool
 
 import config as cfg
@@ -12,9 +12,9 @@ from data_loader import DataLoader
 
 
 def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distance: float) -> None:
-    loader: DataLoader = DataLoader(f'{cfg.DATA_PATH}/{test_name}')
+    loader: DataLoader = DataLoader(f'{cfg.NOMINAL_DATA_PATH}/{test_name}')
     data_df: pd.DataFrame = loader.load_from_arff()
-    data_array: np.ndarray = data_df[cfg.DATA_ATTRIBUTES].values
+    data_array: np.ndarray = data_df.iloc[:, :-1].values
     plot_2d_dataframe_by_class(
         data_df,
         f'ncl_{num_clusters}thr_{threshold}dst_{max_distance}__{test_name}'.replace('.', '')[:-4]
@@ -35,13 +35,19 @@ def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distan
     )
 
 
-def test_categorical(test_name: str, num_clusters: int, threshold: float) -> None:
-    loader: DataLoader = DataLoader(f'{cfg.DATA_PATH}/{test_name}')
+def test_categorical(test_name: str, num_clusters: int, threshold: float, label_first: bool) -> None:
+    loader: DataLoader = DataLoader(f'{cfg.CATEGORICAL_DATA_PATH}/{test_name}')
     data: np.ndarray = loader.load_from_csv()
-    labels_array: np.ndarray = np.asarray(data[:, 0])
-    data_array: np.ndarray = np.asarray(data[:, 1:])
+    labels_array: Optional[np.ndarray] = None
+    data_array: Optional[np.ndarray] = None
+    if label_first:
+        labels_array: np.ndarray = np.asarray(data[:, 0])
+        data_array: np.ndarray = np.asarray(data[:, 1:])
+    else:
+        labels_array: np.ndarray = np.asarray(data[:, -1])
+        data_array: np.ndarray = np.asarray(data[:, :-1])
 
-    rock: CategoricalRock = CategoricalRock(data_array, 0.25, num_clusters, threshold)
+    rock: CategoricalRock = CategoricalRock(data_array, 1.0, num_clusters, threshold)
     rock.run()
 
     clusters: List[List[int]] = rock.result
@@ -52,13 +58,14 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float) -> Non
 
 if __name__ == '__main__':
     np.random.seed(42)
-    nominal_data = []
-    for nominal_test, num_clusters in zip(cfg.NOMINAL_TEST_FILENAMES, cfg.NOMINAL_NUM_CLUSTERS):
-        for threshold in cfg.THRESHOLDS:
-            for max_distance in cfg.DISTANCES:
-                nominal_data.append((nominal_test, num_clusters, threshold, max_distance))
-    with Pool() as pool:
-        pool.starmap(test_nominal, nominal_data)
+    # nominal_data = []
+    # for nominal_test, num_clusters in zip(cfg.N_TEST_FILENAMES, cfg.N_NUM_CLUSTERS):
+    #     for threshold in cfg.THRESHOLDS:
+    #         for max_distance in cfg.DISTANCES:
+    #             nominal_data.append((nominal_test, num_clusters, threshold, max_distance))
+    # with Pool() as pool:
+    #     pool.starmap(test_nominal, nominal_data)
 
-    for categorical_test, num_clusters in zip(cfg.CATEGORICAL_TEST_FILENAMES, cfg.CATEGORICAL_NUM_CLUSTERS):
-        test_categorical(categorical_test, num_clusters, 0.8)
+    test_categorical('breast-cancer.data', 10, 0.8, False)
+    # for categorical_test, num_clusters, lf in zip(cfg.C_TEST_FILENAMES, cfg.C_NUM_CLUSTERS, cfg.LABEL_FIRST):
+    #     test_categorical(categorical_test, num_clusters, 0.8, lf)
