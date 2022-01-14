@@ -18,14 +18,8 @@ def euclidean_distance(point: ndarray, all_points: ndarray, point_in_all_points:
     return np.sqrt(squared_sum)
 
 
-def jaccard_coefficient(point: ndarray, all_points: ndarray, point_in_all_points: bool = True) -> ndarray:
-    intersection: ndarray = np.logical_and(all_points, point)
-    if point_in_all_points:
-        point_idx: int = all_points.tolist().index(point.tolist())
-        intersection[point_idx, :] = False  # Skip self in computations
-    union: ndarray = np.logical_or(all_points, point)
-    intersection: ndarray = np.sum(intersection, axis=1)
-    union: ndarray = np.sum(union, axis=1)
-    return intersection / union
+def jaccard_coefficient(point_a: ndarray, point_b: ndarray) -> float:
+    return np.sum(np.logical_and(point_a, point_b)) / np.sum(np.logical_or(point_a, point_b))
+
 
 

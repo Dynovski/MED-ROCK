@@ -1,11 +1,9 @@
 import numpy as np
 import heapq
 
-from multiprocessing import Pool
-from typing import List, Set, Tuple
+from typing import List, Set
 from tqdm import tqdm
 
-import config
 from cluster import Cluster
 from utils import euclidean_distance, jaccard_coefficient, encode_categorical
 
@@ -72,12 +70,7 @@ class Rock:
 
     def compute_links(self) -> np.ndarray:
         matrix = self.compute_adjacency_matrix()
-        size = matrix.shape[0]
-        for i in range(size):
-            for j in range(size):
-                assert matrix[i, j] == matrix[j, i]
         result = matrix.dot(matrix)
-        np.fill_diagonal(result, 0)
         return result
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
@@ -126,7 +119,6 @@ class Rock:
             for x in self.all_clusters:
                 if u in [z[1] for z in x.linked_clusters] or v in [z[1] for z in x.linked_clusters]:
                     x.linked_clusters = [tup for tup in x.linked_clusters if tup[1] != u and tup[1] != v]
-                    assert len(set([cl[1] for cl in x.linked_clusters])) == len(x.linked_clusters)
 
                     goodness = self.goodness_measure(w, x)
 
@@ -204,47 +196,28 @@ class CategoricalRock(Rock):
         super(CategoricalRock, self).__init__(categorical_data, sample_size, num_clusters, theta)
 
     def compute_similarity(self, point: np.ndarray, points: np.ndarray, point_in_all_points: bool = True) -> np.ndarray:
-        return jaccard_coefficient(point, points, point_in_all_points)
-
-    def jaccard(self, point, point2):
-        return np.sum(np.logical_and(point, point2)) / np.sum(np.logical_or(point, point2))
+        num_points: int = points.shape[0]
+        similarities: List[float] = []
+        for i in range(num_points):
+            similarities.append(jaccard_coefficient(point, points[i]))
+        return np.array(similarities)
 
     def compute_adjacency_matrix(self) -> np.ndarray:
-        adj_matrix = np.zeros((self.sample.shape[0], self.sample.shape[0]), 'int64')
-        for i in range(self.sample.shape[0]):
-            for j in range(i + 1, self.sample.shape[0]):
-                similarity = self.jaccard(self.sample[i], self.sample[j])
+        num_points: int = self.sample.shape[0]
+        bar = tqdm(desc='Computing adjacency matrix', total=num_points)
+        adjacency_matrix: np.ndarray = np.zeros((num_points, num_points), 'int64')
+        for i in range(num_points):
+            for j in range(i + 1, num_points):
+                similarity: float = jaccard_coefficient(self.sample[i], self.sample[j])
                 if similarity >= self.theta:
-                    adj_matrix[i, j] = 1
-                    adj_matrix[j, i] = 1
-        np.fill_diagonal(adj_matrix, 0)
-        return adj_matrix
-        # adjacency_rows: List[np.ndarray] = []
-        # num_points: int = self.sample.shape[0]
-        # if config.USE_PARALLEL:
-        #     parallel_computation_data: List[Tuple[int, np.ndarray]] = []
-        #     unsorted_rows: List[Tuple[int, np.ndarray]] = []
-        #     for i in range(num_points):
-        #         point: np.ndarray = self.sample[i]
-        #         parallel_computation_data.append((i, point))
-        #     with Pool() as pool:
-        #         unsorted_rows = pool.starmap(self.parallel_computations, parallel_computation_data)
-        #     adjacency_rows: List[np.ndarray] = [tup[1] for tup in sorted(unsorted_rows)]
-        # else:
-        #     bar = tqdm(desc='Computing similarity matrix', total=num_points)
-        #     for i in range(num_points):
-        #         point: np.ndarray = self.sample[i]
-        #         sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
-        #         adjacency_rows.append(sim_matrix >= self.theta)
-        #         bar.update()
-        # return np.stack(adjacency_rows).astype(int)
-
-    def parallel_computations(self, i, point):
-        sim_matrix = self.compute_similarity(point, self.sample)
-        return i, sim_matrix >= self.theta
+                    adjacency_matrix[i, j] = 1
+                    adjacency_matrix[j, i] = 1
+            bar.update()
+        np.fill_diagonal(adjacency_matrix, 0)
+        return adjacency_matrix
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
-        similarity: np.ndarray = self.compute_similarity(point, points, False)
+        similarity: np.ndarray = self.compute_similarity(point, points)
         return (
                 np.sum(similarity >= self.theta).item() /
                 (points.shape[0] + 1) ** ((1.0 - self.theta) / (1.0 + self.theta))
