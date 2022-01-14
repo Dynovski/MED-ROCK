@@ -19,11 +19,6 @@ class Cluster:
         self.linked_clusters.append((goodness, cluster))
         heapq.heapify(self.linked_clusters)
 
-    def remove_linked_cluster(self, cluster: 'Cluster') -> None:
-        if cluster in self.cluster_to_goodness_d.keys():
-            self.linked_clusters.discard(cluster)
-            self.cluster_to_goodness_d.pop(cluster)
-
     def __lt__(self, other: 'Cluster'):
         if self.linked_clusters and other.linked_clusters:
             this_goodness = self.linked_clusters[0][0]

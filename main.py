@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
 
-from typing import List, Optional
 from multiprocessing import Pool
+from typing import List, Optional
 
 import config as cfg
 
-from plotting import plot_2d_dataframe_by_class, plot_2d_dataframe_by_dataset, plot_categorical_data_clusters
+from plotting import plot_2d_dataframe_by_class, plot_2d_dataframe_by_dataset
 from rock import DistanceRock, CategoricalRock
 from data_loader import DataLoader
 
@@ -47,7 +47,7 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
         labels_array: np.ndarray = np.asarray(data[:, -1])
         data_array: np.ndarray = np.asarray(data[:, :-1])
 
-    rock: CategoricalRock = CategoricalRock(data_array, 0.25, num_clusters, threshold)
+    rock: CategoricalRock = CategoricalRock(data_array, 0.05, num_clusters, threshold)
     rock.run()
 
     clusters: List[List[int]] = rock.result
@@ -58,14 +58,14 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
 
 if __name__ == '__main__':
     np.random.seed(42)
-    # nominal_data = []
-    # for nominal_test, num_clusters in zip(cfg.N_TEST_FILENAMES, cfg.N_NUM_CLUSTERS):
-    #     for threshold in cfg.THRESHOLDS:
-    #         for max_distance in cfg.DISTANCES:
-    #             nominal_data.append((nominal_test, num_clusters, threshold, max_distance))
-    # with Pool() as pool:
-    #     pool.starmap(test_nominal, nominal_data)
+    nominal_data = []
+    for nominal_test, num_clusters in zip(cfg.N_TEST_FILENAMES, cfg.N_NUM_CLUSTERS):
+        for threshold in cfg.THRESHOLDS:
+            for max_distance in cfg.DISTANCES:
+                nominal_data.append((nominal_test, num_clusters, threshold, max_distance))
+    with Pool() as pool:
+        pool.starmap(test_nominal, nominal_data)
 
-    test_categorical('agaricus-lepiota.data', 20, 0.8, True)
-    # for categorical_test, num_clusters, lf in zip(cfg.C_TEST_FILENAMES, cfg.C_NUM_CLUSTERS, cfg.LABEL_FIRST):
-    #     test_categorical(categorical_test, num_clusters, 0.8, lf)
+    test_categorical('adult.data', 20, 0.2, False)
+    for categorical_test, num_clusters, lf in zip(cfg.C_TEST_FILENAMES, cfg.C_NUM_CLUSTERS, cfg.LABEL_FIRST):
+        test_categorical(categorical_test, num_clusters, 0.8, lf)

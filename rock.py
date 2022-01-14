@@ -71,6 +71,7 @@ class Rock:
     def compute_links(self) -> np.ndarray:
         matrix = self.compute_adjacency_matrix()
         result = matrix.dot(matrix)
+        np.fill_diagonal(result, 0)
         return result
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
@@ -116,14 +117,13 @@ class Rock:
             similar_clusters.discard(u)
             similar_clusters.discard(v)
 
-            for x in self.all_clusters:
-                if u in [z[1] for z in x.linked_clusters] or v in [z[1] for z in x.linked_clusters]:
-                    x.linked_clusters = [tup for tup in x.linked_clusters if tup[1] != u and tup[1] != v]
+            for x in similar_clusters:
+                x.linked_clusters = [tup for tup in x.linked_clusters if tup[1] != u and tup[1] != v]
 
-                    goodness = self.goodness_measure(w, x)
+                goodness = self.goodness_measure(w, x)
 
-                    x.add_linked_cluster(w, goodness)
-                    w.add_linked_cluster(x, goodness)
+                x.add_linked_cluster(w, goodness)
+                w.add_linked_cluster(x, goodness)
 
             self.all_clusters.append(w)
             heapq.heapify(self.all_clusters)
