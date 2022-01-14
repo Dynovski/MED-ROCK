@@ -47,7 +47,7 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
         labels_array: np.ndarray = np.asarray(data[:, -1])
         data_array: np.ndarray = np.asarray(data[:, :-1])
 
-    rock: CategoricalRock = CategoricalRock(data_array, 1.0, num_clusters, threshold)
+    rock: CategoricalRock = CategoricalRock(data_array, 0.1, num_clusters, threshold)
     rock.run()
 
     clusters: List[List[int]] = rock.result
@@ -66,6 +66,6 @@ if __name__ == '__main__':
     # with Pool() as pool:
     #     pool.starmap(test_nominal, nominal_data)
 
-    test_categorical('breast-cancer.data', 10, 0.8, False)
+    test_categorical('breast-cancer.data', 20, 0.8, False)
     # for categorical_test, num_clusters, lf in zip(cfg.C_TEST_FILENAMES, cfg.C_NUM_CLUSTERS, cfg.LABEL_FIRST):
     #     test_categorical(categorical_test, num_clusters, 0.8, lf)

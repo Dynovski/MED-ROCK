@@ -1,6 +1,6 @@
 import numpy as np
+import heapq
 
-from sortedcontainers import SortedList
 from multiprocessing import Pool
 from typing import List, Set, Tuple
 from tqdm import tqdm
@@ -57,7 +57,8 @@ class Rock:
                 goodness: float = self.goodness_measure(cluster, similar_cluster)
                 cluster.add_linked_cluster(similar_cluster, goodness)
 
-        self.all_clusters: SortedList[Cluster] = SortedList(clusters_by_idx)
+        heapq.heapify(clusters_by_idx)
+        self.all_clusters: List[Cluster] = clusters_by_idx
 
     @property
     def best_cluster(self) -> Cluster:
@@ -93,9 +94,10 @@ class Rock:
         return -num_links / normalize_factor
 
     def get_best_cluster(self) -> Cluster:
-        return self.all_clusters.pop(0)
+        return heapq.heappop(self.all_clusters)
 
     def run(self):
+
         bar = tqdm(desc='Processing clusters', total=len(self.all_clusters) - self.num_clusters)
         while len(self.all_clusters) > self.num_clusters:
             if len(self.best_cluster.linked_clusters) == 0:
@@ -105,32 +107,30 @@ class Rock:
             # pops u from all_clusters
             u = self.get_best_cluster()
             v = u.best_linked_cluster
-            self.all_clusters.discard(v)
+            self.all_clusters.remove(v)
 
             w = Cluster(sorted(u.data_indices + v.data_indices))
 
             similar_clusters: Set[Cluster] = set()
             for i in u.linked_clusters:
-                similar_clusters.add(i)
+                similar_clusters.add(i[1])
             for i in v.linked_clusters:
-                similar_clusters.add(i)
+                similar_clusters.add(i[1])
             similar_clusters.discard(u)
             similar_clusters.discard(v)
 
-            for x in similar_clusters:
-                self.all_clusters.discard(x)
+            for x in self.all_clusters:
+                if u in [z[1] for z in x.linked_clusters] or v in [z[1] for z in x.linked_clusters]:
+                    x.linked_clusters = [tup for tup in x.linked_clusters if tup[1] != u and tup[1] != v]
+                    assert len(set([cl[1] for cl in x.linked_clusters])) == len(x.linked_clusters)
 
-                x.remove_linked_cluster(u)
-                x.remove_linked_cluster(v)
+                    goodness = self.goodness_measure(w, x)
 
-                goodness = self.goodness_measure(w, x)
+                    x.add_linked_cluster(w, goodness)
+                    w.add_linked_cluster(x, goodness)
 
-                x.add_linked_cluster(w, goodness)
-                w.add_linked_cluster(x, goodness)
-
-                self.all_clusters.add(x)
-
-            self.all_clusters.add(w)
+            self.all_clusters.append(w)
+            heapq.heapify(self.all_clusters)
             bar.update()
 
         for cluster in self.all_clusters:
