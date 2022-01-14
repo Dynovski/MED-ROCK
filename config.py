@@ -9,7 +9,7 @@ DATA_ATTRIBUTES = ['x', 'y']
 DATA_TARGET = 'class'
 
 CATEGORICAL_DATA_ATTRIBUTE = 'cluster'
-USE_PARALLEL = False
+USE_PARALLEL = True
 
 N_TEST_FILENAMES = [
     '2d-3c-no123.arff',

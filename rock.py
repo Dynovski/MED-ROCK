@@ -72,6 +72,10 @@ class Rock:
 
     def compute_links(self) -> np.ndarray:
         matrix = self.compute_adjacency_matrix()
+        size = matrix.shape[0]
+        for i in range(size):
+            for j in range(size):
+                assert matrix[i, j] == matrix[j, i]
         result = matrix.dot(matrix)
         np.fill_diagonal(result, 0)
         return result
@@ -202,26 +206,38 @@ class CategoricalRock(Rock):
     def compute_similarity(self, point: np.ndarray, points: np.ndarray, point_in_all_points: bool = True) -> np.ndarray:
         return jaccard_coefficient(point, points, point_in_all_points)
 
+    def jaccard(self, point, point2):
+        return np.sum(np.logical_and(point, point2)) / np.sum(np.logical_or(point, point2))
+
     def compute_adjacency_matrix(self) -> np.ndarray:
-        adjacency_rows: List[np.ndarray] = []
-        num_points: int = self.sample.shape[0]
-        if config.USE_PARALLEL:
-            parallel_computation_data: List[Tuple[int, np.ndarray]] = []
-            unsorted_rows: List[Tuple[int, np.ndarray]] = []
-            for i in range(num_points):
-                point: np.ndarray = self.sample[i]
-                parallel_computation_data.append((i, point))
-            with Pool() as pool:
-                unsorted_rows = pool.starmap(self.parallel_computations, parallel_computation_data)
-            adjacency_rows: List[np.ndarray] = [tup[1] for tup in sorted(unsorted_rows)]
-        else:
-            bar = tqdm(desc='Computing similarity matrix', total=num_points)
-            for i in range(num_points):
-                point: np.ndarray = self.sample[i]
-                sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
-                adjacency_rows.append(sim_matrix >= self.theta)
-                bar.update()
-        return np.stack(adjacency_rows).astype(int)
+        adj_matrix = np.zeros((self.sample.shape[0], self.sample.shape[0]), 'int64')
+        for i in range(self.sample.shape[0]):
+            for j in range(i + 1, self.sample.shape[0]):
+                similarity = self.jaccard(self.sample[i], self.sample[j])
+                if similarity >= self.theta:
+                    adj_matrix[i, j] = 1
+                    adj_matrix[j, i] = 1
+        np.fill_diagonal(adj_matrix, 0)
+        return adj_matrix
+        # adjacency_rows: List[np.ndarray] = []
+        # num_points: int = self.sample.shape[0]
+        # if config.USE_PARALLEL:
+        #     parallel_computation_data: List[Tuple[int, np.ndarray]] = []
+        #     unsorted_rows: List[Tuple[int, np.ndarray]] = []
+        #     for i in range(num_points):
+        #         point: np.ndarray = self.sample[i]
+        #         parallel_computation_data.append((i, point))
+        #     with Pool() as pool:
+        #         unsorted_rows = pool.starmap(self.parallel_computations, parallel_computation_data)
+        #     adjacency_rows: List[np.ndarray] = [tup[1] for tup in sorted(unsorted_rows)]
+        # else:
+        #     bar = tqdm(desc='Computing similarity matrix', total=num_points)
+        #     for i in range(num_points):
+        #         point: np.ndarray = self.sample[i]
+        #         sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
+        #         adjacency_rows.append(sim_matrix >= self.theta)
+        #         bar.update()
+        # return np.stack(adjacency_rows).astype(int)
 
     def parallel_computations(self, i, point):
         sim_matrix = self.compute_similarity(point, self.sample)
