@@ -58,7 +58,7 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
 
 if __name__ == '__main__':
     np.random.seed(42)
-fixed     nominal_data = []
+    nominal_data = []
     for nominal_test, num_clusters in zip(cfg.N_FILENAMES, cfg.N_CLUSTERS_SIZE):
         for threshold in cfg.THRESHOLDS:
             for max_distance in cfg.DISTANCES:
