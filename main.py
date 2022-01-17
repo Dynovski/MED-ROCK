@@ -31,7 +31,7 @@ def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distan
     concatenated_df: pd.DataFrame = pd.concat([c.assign(dataset=f'c{i}') for (i, c) in enumerate(cluster_data)])
     plot_2d_dataframe_by_dataset(
         concatenated_df,
-        f'ncl_{num_clusters}thr_{threshold}dst_{max_distance}__{test_name}'.replace('.', '')[:-4]
+        f'CL_{num_clusters}THR_{threshold}MD_{max_distance}__{test_name}'.replace('.', '')[:-4]
     )
 
 
@@ -62,10 +62,9 @@ if __name__ == '__main__':
     for nominal_test, num_clusters in zip(cfg.N_FILENAMES, cfg.N_CLUSTERS_SIZE):
         for threshold in cfg.THRESHOLDS:
             for max_distance in cfg.DISTANCES:
-                nominal_data.append((nominal_test, num_clusters, threshold, max_distance))
+                nominal_data.append((nominal_test, num_clusters, threshold, max_distance, cfg.N_RATIO))
     with Pool() as pool:
         pool.starmap(test_nominal, nominal_data)
 
-    test_categorical('adult.data', 20, 0.2, False)
     for categorical_test, num_clusters, lf in zip(cfg.C_FILENAMES, cfg.C_CLUSTERS_SIZE, cfg.LABEL_FIRST):
-        test_categorical(categorical_test, num_clusters, 0.8, lf)
+        test_categorical(categorical_test, num_clusters, 0.8, cfg.C_RATIO)
