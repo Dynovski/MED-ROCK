@@ -67,4 +67,4 @@ if __name__ == '__main__':
         pool.starmap(test_nominal, nominal_data)
 
     for categorical_test, num_clusters, lf in zip(cfg.C_FILENAMES, cfg.C_CLUSTERS_SIZE, cfg.LABEL_FIRST):
-        test_categorical(categorical_test, num_clusters, 0.8, cfg.C_RATIO)
+        test_categorical(categorical_test, num_clusters, 0.8, lf, cfg.C_RATIO)
