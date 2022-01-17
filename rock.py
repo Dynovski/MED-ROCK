@@ -88,7 +88,7 @@ class Rock:
                 c1.size ** self.goodness_exponent -
                 c2.size ** self.goodness_exponent
         )
-        if c1.size == 0 and c2.size == 0:
+        if normalize_factor == 0:
             return 0
         return -num_links / normalize_factor
 
