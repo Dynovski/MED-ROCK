@@ -17,7 +17,8 @@ class Rock:
             theta: float,
     ):
         """
-
+        Rock clustering algorithm
+        ---
         :param data: numpy.ndarray
             all elements to cluster. Each column in array represents attribute, each row represents item
         :param sample_size: float
@@ -25,7 +26,7 @@ class Rock:
         :param num_clusters: int
             number of clusters to output from algorithm
         :param theta: float
-            value between 0 and 1, the closer to 1 the harder it is for two elements to be neighbours
+            value between 0 and 1
         """
         self.result: List[List[int]] = []
         self.assign_rest_of_data: bool = sample_size < 1.0
@@ -145,6 +146,7 @@ class Rock:
                 )
                 cluster_data_subsets.append(self.data[indices_subset, :])
 
+            bar = tqdm(desc='Assigning other points', total=len(self.data.shape[0]) - len(self.sample.shape[0]))
             for i in range(self.data.shape[0]):
                 if i in self.random_indices:
                     continue
@@ -157,6 +159,7 @@ class Rock:
                         best_cluster_index = j
                         best_score = score
                 self.result[best_cluster_index].append(i)
+                bar.update()
 
 
 class DistanceRock(Rock):
@@ -171,19 +174,25 @@ class DistanceRock(Rock):
         super(DistanceRock, self).__init__(data, sample_size, num_clusters, theta)
 
     def compute_similarity(self, point: np.ndarray, points: np.ndarray, point_in_all_points: bool = True) -> np.ndarray:
-        return euclidean_distance(point, points, point_in_all_points)
+        similarities: List[float] = [euclidean_distance(point, points[i]) for i in range(points.shape[0])]
+        return np.array(similarities)
 
     def compute_adjacency_matrix(self) -> np.ndarray:
-        adjacency_rows: List[np.ndarray] = []
         num_points: int = self.sample.shape[0]
+        bar = tqdm(desc='Computing adjacency matrix', total=num_points)
+        adjacency_matrix: np.ndarray = np.zeros((num_points, num_points), 'int64')
         for i in range(num_points):
-            point: np.ndarray = self.sample[i]
-            sim_matrix: np.ndarray = self.compute_similarity(point, self.sample)
-            adjacency_rows.append(sim_matrix <= self.max_distance)
-        return np.stack(adjacency_rows).astype(int)
+            for j in range(i + 1, num_points):
+                similarity: float = euclidean_distance(self.sample[i], self.sample[j])
+                if similarity <= self.max_distance:
+                    adjacency_matrix[i, j] = 1
+                    adjacency_matrix[j, i] = 1
+            bar.update()
+        np.fill_diagonal(adjacency_matrix, 0)
+        return adjacency_matrix
 
     def compute_num_neighbours(self, point: np.ndarray, points: np.ndarray) -> float:
-        similarity: np.ndarray = self.compute_similarity(point, points, False)
+        similarity: np.ndarray = self.compute_similarity(point, points)
         return (
                 np.sum(similarity <= self.max_distance).item() /
                 (points.shape[0] + 1) ** ((1.0 - self.theta) / (1.0 + self.theta))
@@ -196,10 +205,7 @@ class CategoricalRock(Rock):
         super(CategoricalRock, self).__init__(categorical_data, sample_size, num_clusters, theta)
 
     def compute_similarity(self, point: np.ndarray, points: np.ndarray, point_in_all_points: bool = True) -> np.ndarray:
-        num_points: int = points.shape[0]
-        similarities: List[float] = []
-        for i in range(num_points):
-            similarities.append(jaccard_coefficient(point, points[i]))
+        similarities: List[float] = [jaccard_coefficient(point, points[i]) for i in range(points.shape[0])]
         return np.array(similarities)
 
     def compute_adjacency_matrix(self) -> np.ndarray:

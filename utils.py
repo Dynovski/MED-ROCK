@@ -9,13 +9,8 @@ def encode_categorical(data: ndarray) -> ndarray:
     return encoder.fit_transform(data)
 
 
-def euclidean_distance(point: ndarray, all_points: ndarray, point_in_all_points: bool = True) -> ndarray:
-    differences: ndarray = all_points - point
-    squared_sum: ndarray = np.sum(np.square(differences), axis=1)
-    if point_in_all_points:
-        point_idx: int = all_points.tolist().index(point.tolist())
-        squared_sum[point_idx] = np.inf  # Skip self in computations
-    return np.sqrt(squared_sum)
+def euclidean_distance(point_a: ndarray, point_b: ndarray) -> float:
+    return np.sqrt(np.sum(np.square(point_a - point_b)))
 
 
 def jaccard_coefficient(point_a: ndarray, point_b: ndarray) -> float:

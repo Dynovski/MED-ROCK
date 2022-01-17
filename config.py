@@ -8,10 +8,12 @@ CATEGORICAL_PLOTS_PATH = 'results/categorical'
 DATA_ATTRIBUTES = ['x', 'y']
 DATA_TARGET = 'class'
 
-CATEGORICAL_DATA_ATTRIBUTE = 'cluster'
-USE_PARALLEL = True
+C_RATIO = 0.1
+N_RATIO = 0.5
 
-N_TEST_FILENAMES = [
+C_DATA_ATTRIBUTE = 'cluster'
+
+N_FILENAMES = [
     '2d-3c-no123.arff',
     '2d-4c-no4.arff',
     '3-spiral.arff',
@@ -25,15 +27,15 @@ N_TEST_FILENAMES = [
     'triangle1.arff'
 ]
 
-N_NUM_CLUSTERS = [3, 4, 3, 2, 3, 2, 2, 2, 16, 4, 4]
+N_CLUSTERS_SIZE = [3, 4, 3, 2, 3, 2, 2, 2, 16, 4, 4]
 
-C_TEST_FILENAMES = [
+C_FILENAMES = [
     'agaricus-lepiota.data',
     'breast-cancer.data',
     'adult.data'
 ]
 
-C_NUM_CLUSTERS = [20, 2, 2]
+C_CLUSTERS_SIZE = [20, 2, 2]
 LABEL_FIRST = [True, False, False]
 
 THRESHOLDS = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]

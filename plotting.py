@@ -19,6 +19,6 @@ def plot_2d_dataframe_by_dataset(df: pd.DataFrame, filename: str) -> None:
 
 
 def plot_categorical_data_clusters(df: pd.DataFrame, filename: str) -> None:
-    sns.catplot(data=df, y=cfg.CATEGORICAL_DATA_ATTRIBUTE, hue=cfg.DATA_TARGET, kind='count', height=30, aspect=1)
+    sns.catplot(data=df, y=cfg.C_DATA_ATTRIBUTE, hue=cfg.DATA_TARGET, kind='count', height=30, aspect=1)
     plt.savefig(f'{cfg.CATEGORICAL_PLOTS_PATH}/{filename}')
     plt.clf()

@@ -11,7 +11,7 @@ from rock import DistanceRock, CategoricalRock
 from data_loader import DataLoader
 
 
-def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distance: float) -> None:
+def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distance: float, ratio: float) -> None:
     loader: DataLoader = DataLoader(f'{cfg.NOMINAL_DATA_PATH}/{test_name}')
     data_df: pd.DataFrame = loader.load_from_arff()
     data_array: np.ndarray = data_df.iloc[:, :-1].values
@@ -20,7 +20,7 @@ def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distan
         f'ncl_{num_clusters}thr_{threshold}dst_{max_distance}__{test_name}'.replace('.', '')[:-4]
     )
 
-    rock: DistanceRock = DistanceRock(data_array, 0.5, num_clusters, threshold, max_distance)
+    rock: DistanceRock = DistanceRock(data_array, ratio, num_clusters, threshold, max_distance)
     rock.run()
 
     clusters: List[List[int]] = rock.result
@@ -35,7 +35,7 @@ def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distan
     )
 
 
-def test_categorical(test_name: str, num_clusters: int, threshold: float, label_first: bool) -> None:
+def test_categorical(test_name: str, num_clusters: int, threshold: float, label_first: bool, ratio: float) -> None:
     loader: DataLoader = DataLoader(f'{cfg.CATEGORICAL_DATA_PATH}/{test_name}')
     data: np.ndarray = loader.load_from_csv()
     labels_array: Optional[np.ndarray] = None
@@ -47,7 +47,7 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
         labels_array: np.ndarray = np.asarray(data[:, -1])
         data_array: np.ndarray = np.asarray(data[:, :-1])
 
-    rock: CategoricalRock = CategoricalRock(data_array, 0.05, num_clusters, threshold)
+    rock: CategoricalRock = CategoricalRock(data_array, ratio, num_clusters, threshold)
     rock.run()
 
     clusters: List[List[int]] = rock.result
@@ -59,7 +59,7 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
 if __name__ == '__main__':
     np.random.seed(42)
     nominal_data = []
-    for nominal_test, num_clusters in zip(cfg.N_TEST_FILENAMES, cfg.N_NUM_CLUSTERS):
+    for nominal_test, num_clusters in zip(cfg.N_FILENAMES, cfg.N_CLUSTERS_SIZE):
         for threshold in cfg.THRESHOLDS:
             for max_distance in cfg.DISTANCES:
                 nominal_data.append((nominal_test, num_clusters, threshold, max_distance))
@@ -67,5 +67,5 @@ if __name__ == '__main__':
         pool.starmap(test_nominal, nominal_data)
 
     test_categorical('adult.data', 20, 0.2, False)
-    for categorical_test, num_clusters, lf in zip(cfg.C_TEST_FILENAMES, cfg.C_NUM_CLUSTERS, cfg.LABEL_FIRST):
+    for categorical_test, num_clusters, lf in zip(cfg.C_FILENAMES, cfg.C_CLUSTERS_SIZE, cfg.LABEL_FIRST):
         test_categorical(categorical_test, num_clusters, 0.8, lf)
