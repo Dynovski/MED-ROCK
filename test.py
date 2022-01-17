@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+from multiprocessing import Pool
 from typing import List, Optional
 
 import config as cfg
@@ -10,7 +11,7 @@ from rock import DistanceRock, CategoricalRock
 from data_loader import DataLoader
 
 
-def run_nominal(test_name: str, num_clusters: int, threshold: float, max_distance: float, ratio: float) -> None:
+def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distance: float, ratio: float) -> None:
     loader: DataLoader = DataLoader(f'{cfg.NOMINAL_DATA_PATH}/{test_name}')
     data_df: pd.DataFrame = loader.load_from_arff()
     data_array: np.ndarray = data_df.iloc[:, :-1].values
@@ -34,7 +35,7 @@ def run_nominal(test_name: str, num_clusters: int, threshold: float, max_distanc
     )
 
 
-def run_categorical(test_name: str, num_clusters: int, threshold: float, label_first: bool, ratio: float) -> None:
+def test_categorical(test_name: str, num_clusters: int, threshold: float, label_first: bool, ratio: float) -> None:
     loader: DataLoader = DataLoader(f'{cfg.CATEGORICAL_DATA_PATH}/{test_name}')
     data: np.ndarray = loader.load_from_csv()
     labels_array: Optional[np.ndarray] = None
@@ -56,7 +57,14 @@ def run_categorical(test_name: str, num_clusters: int, threshold: float, label_f
 
 
 if __name__ == '__main__':
-    if cfg.IS_NOMINAL:
-        run_nominal(cfg.DATA_FILENAME, cfg.NUM_CLUSTERS, cfg.THETA, cfg.MAX_DISTANCE, cfg.RATIO)
-    else:
-        run_categorical(cfg.DATA_FILENAME, cfg.NUM_CLUSTERS, cfg.THETA, cfg.IS_LABEL_FIRST, cfg.RATIO)
+    np.random.seed(42)
+    nominal_data = []
+    for nominal_test, num_clusters in zip(cfg.N_FILENAMES, cfg.N_CLUSTERS_SIZE):
+        for threshold in cfg.THRESHOLDS:
+            for max_distance in cfg.DISTANCES:
+                nominal_data.append((nominal_test, num_clusters, threshold, max_distance, cfg.N_RATIO))
+    with Pool() as pool:
+        pool.starmap(test_nominal, nominal_data)
+
+    for categorical_test, num_clusters, lf in zip(cfg.C_FILENAMES, cfg.C_CLUSTERS_SIZE, cfg.LABEL_FIRST):
+        test_categorical(categorical_test, num_clusters, 0.8, lf, cfg.C_RATIO)
