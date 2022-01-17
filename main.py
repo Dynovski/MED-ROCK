@@ -17,7 +17,7 @@ def test_nominal(test_name: str, num_clusters: int, threshold: float, max_distan
     data_array: np.ndarray = data_df.iloc[:, :-1].values
     plot_2d_dataframe_by_class(
         data_df,
-        f'ncl_{num_clusters}thr_{threshold}dst_{max_distance}__{test_name}'.replace('.', '')[:-4]
+        f'{test_name}'.replace('.', '')[:-4]
     )
 
     rock: DistanceRock = DistanceRock(data_array, ratio, num_clusters, threshold, max_distance)
@@ -58,7 +58,7 @@ def test_categorical(test_name: str, num_clusters: int, threshold: float, label_
 
 if __name__ == '__main__':
     np.random.seed(42)
-    nominal_data = []
+fixed     nominal_data = []
     for nominal_test, num_clusters in zip(cfg.N_FILENAMES, cfg.N_CLUSTERS_SIZE):
         for threshold in cfg.THRESHOLDS:
             for max_distance in cfg.DISTANCES:

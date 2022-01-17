@@ -146,7 +146,6 @@ class Rock:
                 )
                 cluster_data_subsets.append(self.data[indices_subset, :])
 
-            bar = tqdm(desc='Assigning other points', total=len(self.data.shape[0]) - len(self.sample.shape[0]))
             for i in range(self.data.shape[0]):
                 if i in self.random_indices:
                     continue
@@ -159,7 +158,6 @@ class Rock:
                         best_cluster_index = j
                         best_score = score
                 self.result[best_cluster_index].append(i)
-                bar.update()
 
 
 class DistanceRock(Rock):
